@@ -69,6 +69,8 @@ textarea{width:100%;padding:12px 13px;border:1px solid #d3e0da;border-radius:13p
 details.jr summary{cursor:pointer;display:inline-block}
 @media(max-width:860px){.formbar{bottom:70px}}
 @media print{.xlt .stk{position:static;width:auto}.xlwrap{max-height:none;overflow:visible;border:0}.xlt .s1,.xlt .s2{position:static}.xlt thead th{position:static}.warn{display:none}}
+#pa.rcv{background:#e4d0bb}#pa .rci{display:block;width:100%;max-width:920px;margin:14px auto;border-radius:6px;box-shadow:0 10px 30px rgba(90,60,30,.25)}
+@media print{#pa.rcv{background:#fff}#pa .rci{box-shadow:none;border-radius:0;max-width:100%;margin:0}@page{size:A4;margin:10mm}}
 </style></head><body>
 <div id="lg"></div>
 <div id="app" hidden><header class="top"><div class="brand"><img id="hl" alt=""><b id="hn"></b></div><div class="hr" id="hr"></div></header><nav id="nv"></nav><main id="pg"></main></div>
@@ -145,7 +147,7 @@ function X(k,t){let R=RP[k],n=un(R.t).replace(/\W+/g,'_'),rows=[R.h,...R.r].map(
  if(t=='pdf')return pr(xlT(esc(R.t),R.h.map(h=>`<th>${h}</th>`).join(''),R.r.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join(''),'','wrap')+signoff(),1);
  if(t=='csv')dl(n+'.csv','﻿'+rows.map(r=>r.map(c=>'"'+c.replace(/"/g,'""')+'"').join(';')).join('\n'),'text/csv');
  else dl(n+'.xls','<html><head><meta charset="utf-8"></head><body><table border="1">'+rows.map((r,i)=>'<tr>'+r.map(c=>`<t${i?'d':'h'}>${esc(c)}</t${i?'d':'h'}>`).join('')+'</tr>').join('')+'</table></body></html>','application/vnd.ms-excel')}
-function pr(h,x){$('#pa').hidden=0;$('#pa').innerHTML=`<div class="np row"><button class="b" onclick="print()">${I('print',16)} Imprimer / Enregistrer en PDF</button><button class="b l" onclick="$('#pa').hidden=1">Fermer</button></div><div style="text-align:center">${D.s.logo?`<img src="${D.s.logo}" height="60">`:''}${x?'':`<h2>${esc(D.s.nom)}</h2><small>Année scolaire ${esc(D.s.annee)}</small>`}</div>`+h}
+function pr(h,x){$('#pa').className='';$('#pa').hidden=0;$('#pa').innerHTML=`<div class="np row"><button class="b" onclick="print()">${I('print',16)} Imprimer / Enregistrer en PDF</button><button class="b l" onclick="$('#pa').hidden=1">Fermer</button></div><div style="text-align:center">${D.s.logo?`<img src="${D.s.logo}" height="60">`:''}${x?'':`<h2>${esc(D.s.nom)}</h2><small>Année scolaire ${esc(D.s.annee)}</small>`}</div>`+h}
 // ---- formulaires modaux
 const PH={};let PF=[];function ph(i,k,z,j){let f=i.files[0];if(!f)return;let r=new FileReader;r.onload=()=>{let m=new Image;m.onload=()=>{let c=document.createElement('canvas'),sc=Math.min(1,(z||200)/Math.max(m.width,m.height)),g;c.width=m.width*sc;c.height=m.height*sc;g=c.getContext('2d');if(j){g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height)}g.drawImage(m,0,0,c.width,c.height);PH[k]=c.toDataURL(j?'image/jpeg':'image/png',j?.82:.7);ts('Photo prête')};m.src=r.result};r.readAsDataURL(f)}
 const cm=()=>$('#mo').hidden=1;
@@ -221,18 +223,59 @@ const PHD=['Reçu','Date','Élève','Classe','Motif','Mois','Montant','Paiement'
 const pl=p=>{let e=EL(p);return[esc(p.rc),DF(p.dt),esc(NM(e)),esc(e.cl||'—'),esc(p.mo),esc(p.mois||'—'),F(p.m,p.dev),esc(p.ty),esc(p.md)]};
 const DVO=Object.entries(CUR).map(([k,s])=>[k,k+' ('+s+')']);
 const PSETS=()=>[
- {t:'Élève',f:[{k:'q',l:'Rechercher un élève déjà enregistré (facultatif)',ph:'Nom ou matricule…',nosave:1,full:1,list:'dls'},{k:'nom',l:'Nom',req:1},{k:'postnom',l:'Postnom',req:1},{k:'prenom',l:'Prénom',req:1},{k:'cl',l:'Classe',t:'cls',req:1},{k:'sec',l:'Section',t:'sel',o:SECS.map(s=>[s,s])},{k:'opt',l:'Option',t:'sel',o:[]}]},
+ {t:'Élève',f:[{k:'q',l:'Rechercher un élève déjà enregistré (nom, matricule ou ID)',ph:'Nom, matricule ou ID…',nosave:1,full:1,list:'dls'},{k:'nom',l:'Nom',req:1},{k:'postnom',l:'Postnom',req:1},{k:'prenom',l:'Prénom',req:1},{k:'cl',l:'Classe',t:'cls',req:1},{k:'sec',l:'Section',t:'sel',o:SECS.map(s=>[s,s])},{k:'opt',l:'Option',t:'sel',o:[]}]},
  {t:'Frais',f:[{k:'dev',l:'Devise',t:'sel',o:DVO},{k:'m',l:'Montant payé',t:'number',req:1},{k:'mo',l:'Motif',t:'sel',o:MO.map(x=>[x,x])},{k:'hint',t:'note',full:1}]},
  {t:'Période et type de paiement',f:[{k:'mois',l:'Mois',t:'sel',o:MOIS.map(x=>[x,x])},{k:'an',l:'Année scolaire',req:1},{k:'ty',l:'Paiement',t:'sel',o:TYP.map(x=>[x,x])},{k:'dt',l:'Date',t:'date',req:1}]},
  {t:'Mode de paiement',f:[{k:'md',l:'Mode de paiement',t:'sel',o:MD.map(x=>[x,x])}]}];
-const phist=()=>{let tot={};D.pa.forEach(p=>add(tot,p.dev,p.m));return`<div class="tiles"><div class="tile g"><span>Total encaissé</span><b>${MS(tot)}</b></div><div class="tile"><span>Nombre de paiements</span><b>${D.pa.length}</b></div></div><div class="card"><h3 style="margin-top:0">Historique des paiements</h3>${EB('pa','Historique des paiements',PHD,D.pa.map(pl))}${TB([...PHD,''],[...D.pa].reverse().map(p=>[...pl(p),`<button class="b l s" onclick="rc('${p.id}')">${I('rcp',15)}</button>`+(can('del')?`<button class="b r s" onclick="rm('pa','${p.id}','Supprimer ce paiement ?')">${I('trash',15)}</button>`:'')]))}</div>`};
-V.pa=()=>HDR(PG.pa[2],'Aucun besoin d’enregistrer l’élève au préalable : saisissez ses coordonnées, ou choisissez-le s’il existe déjà.')+SEGB([['new','Nouveau paiement','plus'],['hist','Historique','clock']],PT,'PT','pa')+(PT=='hist'?phist():(can('pa')?`<form id="frm" autocomplete="off" onsubmit="return false">${fsets(PSETS(),{dev:'USD',mo:'Minerval',mois:MN[new Date().getMonth()],an:D.s.annee,ty:'Total',md:'Espèce',dt:today()})}<datalist id="dls">${D.el.map(e=>`<option value="${esc(NM(e)+' — '+e.mat)}">`).join('')}</datalist><div class="formbar"><button type="button" class="b" onclick="paSave()">${I('check',18)} Enregistrer et générer le reçu</button><button type="button" class="b l" onclick="go('home')">Annuler</button></div></form>`:'<p class="empty">Vous n’avez pas le droit d’enregistrer un paiement.</p>'));
-AF.pa=()=>{if(PT!='new'||!can('pa'))return;LNK=null;
+let PQ={q:'',mo:'',mois:'',cl:''};
+const pFlt=p=>{let e=EL(p),q=snz(PQ.q.trim());return(!PQ.mo||p.mo==PQ.mo)&&(!PQ.mois||p.mois==PQ.mois)&&(!PQ.cl||e.cl==PQ.cl)&&(!q||snz([NM(e),e.mat,e.id,p.el,p.rc].join(' ')).includes(q))};
+const pBar=fn=>`<div class="row"><input placeholder="Rechercher : nom, matricule ou ID…" value="${esc(PQ.q)}" oninput="PQ.q=this.value;${fn}()"><select onchange="PQ.mo=this.value;${fn}()"><option value="">Tous les motifs</option>${MO.map(m=>`<option${m==PQ.mo?' selected':''}>${esc(m)}</option>`).join('')}</select><select onchange="PQ.mois=this.value;${fn}()"><option value="">Tous les mois</option>${MOIS.map(m=>`<option${m==PQ.mois?' selected':''}>${m}</option>`).join('')}</select><select onchange="PQ.cl=this.value;${fn}()"><option value="">Toutes les classes</option>${ALLCL.map(m=>`<option${m==PQ.cl?' selected':''}>${esc(m)}</option>`).join('')}</select></div>`;
+const phist=()=>`<div id="pht"></div><div class="card"><h3 style="margin-top:0">Historique des paiements</h3>${pBar('phFill')}${EB('pa','Historique des paiements',PHD,[])}<div id="phl"></div></div>`;
+function phFill(){let L=D.pa.filter(pFlt),tot={};L.forEach(p=>add(tot,p.dev,p.m));RP.pa.r=L.map(pl);
+ $('#pht').innerHTML=`<div class="tiles"><div class="tile g"><span>Total encaissé</span><b>${MS(tot)}</b></div><div class="tile"><span>Nombre de paiements</span><b>${L.length}</b></div></div>`;
+ $('#phl').innerHTML=TB([...PHD,''],[...L].reverse().map(p=>[...pl(p),`<button class="b l s" onclick="rc('${p.id}')">${I('rcp',15)}</button>`+(can('del')?`<button class="b r s" onclick="rm('pa','${p.id}','Supprimer ce paiement ?')">${I('trash',15)}</button>`:'')]))}
+// ---- Liste des payants (recherche, export, import)
+const PYH=['Matricule','Nom','Postnom','Prénom','Classe','Section','Option','Paiements','Total payé','Dernier paiement','Dernier reçu','Statut'];
+const stT=s=>!s.has?'Sans tarif':s.late.length?'En retard':s.owes?'Dette':'En ordre';
+function pyGroups(){let m=new Map();D.pa.filter(pFlt).forEach(p=>{let g=m.get(p.el);if(!g){g={e:EL(p),P:[],tot:{}};m.set(p.el,g)}g.P.push(p);add(g.tot,p.dev,p.m)});
+ return[...m.values()].map(g=>{g.P.sort((a,b)=>String(a.dt||'').localeCompare(String(b.dt||'')));g.last=g.P[g.P.length-1];g.s=ST(g.e);return g}).sort((a,b)=>NM(a.e).localeCompare(NM(b.e)))}
+const pyHTML=()=>`<div id="pyt"></div><div class="card"><h3 style="margin-top:0">Liste des payants</h3>${pBar('pyFill')}${EB('py','Liste des payants',PYH,[])}${can('pa')?`<div class="row"><button class="b l s" onclick="$('#imp3').click()">${I('up',15)} Importer des paiements</button><button class="b l s" onclick="pyTpl()">${I('file',15)} Modèle CSV</button></div><input id="imp3" type="file" accept=".csv,.txt,.xlsx,.docx,.html" hidden onchange="pyImpStart(event)">`:''}<div id="pyl"></div><p class="sub">Élèves ayant payé selon les filtres. L’import crée un paiement (avec reçu) par ligne : colonnes Matricule ou Nom, Classe, Motif, Mois, Montant (obligatoire), Devise, Date, Mode, Type.</p></div>`;
+function pyFill(){let G=pyGroups(),tot={},n=0;G.forEach(g=>{for(let k in g.tot)add(tot,k,g.tot[k]);n+=g.P.length});
+ RP.py.r=G.map(g=>{let e=g.e;return[esc(e.mat||'—'),esc(e.nom),esc(e.postnom),esc(e.prenom),esc(e.cl||'—'),esc(e.sec||'—'),esc(e.opt||'—'),String(g.P.length),esc(MS(g.tot)),DF(g.last.dt),esc(g.last.rc),stT(g.s)]});
+ $('#pyt').innerHTML=`<div class="tiles"><div class="tile g"><span>Élèves ayant payé</span><b>${G.length}</b></div><div class="tile"><span>Paiements</span><b>${n}</b></div><div class="tile"><span>Total encaissé</span><b>${MS(tot)}</b></div></div>`;
+ $('#pyl').innerHTML=TB(['Matricule','Élève','Classe','Section','Paiements','Total payé','Dernier paiement','Statut',''],G.map(g=>{let e=g.e;return[esc(e.mat||'—'),esc(NM(e)),esc(e.cl||'—'),esc(e.sec||'—'),g.P.length,esc(MS(g.tot)),DF(g.last.dt),pill(g.s),`<button class="b l s" onclick="hi('${esc(e.id)}')">${I('search',15)}</button><button class="b l s" onclick="rc('${g.last.id}')">${I('rcp',15)}</button>`]}))}
+const PYM={matricule:'mat',mat:'mat',nom:'nom',postnom:'postnom',prenom:'prenom',classe:'cl',cl:'cl',montant:'m',montantpaye:'m',somme:'m',devise:'dev',monnaie:'dev',motif:'mo',mois:'mois',date:'dt',datedepaiement:'dt',dernierpaiement:'dt',mode:'md',modedepaiement:'md',type:'ty',typedepaiement:'ty',recu:'rc',numerorecu:'rc',anneescolaire:'an',annee:'an'};
+const pyDev=s=>{s=String(s||'').trim().toUpperCase();if(/^(USD|\$|DOLLAR)/.test(s))return'USD';if(/^(CDF|FC|FRANC)/.test(s))return'CDF';if(/^(EUR|€|EURO)/.test(s))return'EUR';return''};
+const pyAmt=v=>{let s=String(v==null?'':v).replace(/[\s\u00a0\u202f]/g,''),d=pyDev(s.replace(/[\d.,-]/g,''));s=s.replace(/[^\d.,-]/g,'');if(s.includes(',')&&s.includes('.'))s=s.replace(/,/g,'');else s=s.replace(',','.');return{m:parseFloat(s)||0,d}};
+const pyDt=v=>{v=String(v||'').trim();if(!v)return today();let m=v.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);if(m)return m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0');if(/^\d{4}-\d\d-\d\d/.test(v))return v.slice(0,10);if(/^\d{4,5}(\.\d+)?$/.test(v))return new Date(Math.round((+v-25569)*864e5)).toISOString().slice(0,10);return today()};
+const pyPick=(v,L,d)=>{let s=snz(v).replace(/[^a-z]/g,'');return s&&L.find(x=>snz(x).replace(/[^a-z]/g,'')==s)||d};
+let PYQ=null;
+async function pyImpStart(ev){let f=ev.target.files[0];ev.target.value='';if(!f||!can('pa'))return;
+ try{let R=await rowsOf(f);if(!R.length)return ts('Fichier vide');let H=R[0].map(h=>{let k=nk(h);return NOMS.includes(k)?'noms':(PYM[k]||'')});
+  if(!H.includes('m'))return ts('Colonne « Montant » introuvable : utilisez le modèle CSV');
+  let L=[],bad=0,dup=0,seen=new Set();
+  R.slice(1).forEach(c=>{let o={};H.forEach((k,i)=>{if(k&&c[i]!==undefined)o[k]=String(c[i]).trim()});
+   if(o.noms&&!o.nom){let t=o.noms.split(/\s+/);o.nom=t[0]||'';o.postnom=t[1]||'';o.prenom=t.slice(2).join(' ')}
+   let a=pyAmt(o.m),e=(o.mat&&D.el.find(z=>snz(z.mat)==snz(o.mat)))||(o.nom?D.el.find(z=>nkey(z)==nkey(o)):null);
+   if(!(a.m>0)||(!e&&!o.nom)){bad++;return}
+   if(o.rc&&(D.pa.some(p=>p.rc==o.rc)||seen.has(o.rc))){dup++;return}
+   if(o.rc)seen.add(o.rc);
+   let s=e||{nom:o.nom,postnom:o.postnom||'',prenom:o.prenom||'',cl:o.cl||'',sec:secOf(o.cl||'')||'',opt:''};
+   L.push({e,rec:{el:e?e.id:'p:'+nkey(s),nom:s.nom,postnom:s.postnom||'',prenom:s.prenom||'',cl:s.cl||'',sec:s.sec||'',opt:s.opt||'',dev:pyDev(o.dev)||a.d||'USD',m:a.m,mo:pyPick(o.mo,MO,'Minerval'),mois:pyPick(o.mois,MN,''),an:o.an||D.s.annee,ty:pyPick(o.ty,TYP,'Total'),md:pyPick(o.md,MD,'Espèce'),dt:pyDt(o.dt),rc:o.rc||''}})});
+  PYQ=L;let nm=L.filter(x=>!x.e).length,tot={};L.forEach(x=>add(tot,x.rec.dev,x.rec.m));
+  $('#mb').innerHTML=`<div class="mh"><h2>Aperçu de l’import</h2><button class="ib" onclick="cm()">${I('x',16)}</button></div><p class="sub">${esc(f.name)}</p><div class="tiles"><div class="tile g"><span>Paiements à importer</span><b>${L.length}</b></div><div class="tile"><span>Montant total</span><b>${MS(tot)}</b></div><div class="tile"><span>Élèves non enregistrés</span><b>${nm}</b></div><div class="tile"><span>Ignorés / doublons</span><b>${bad} / ${dup}</b></div></div>${TB(['Matricule','Élève','Motif','Mois','Montant','Date'],L.slice(0,6).map(x=>[esc(x.e?x.e.mat:'—'),esc(NM(x.rec)),esc(x.rec.mo),esc(x.rec.mois||'—'),F(x.rec.m,x.rec.dev),DF(x.rec.dt)]))}<p class="sub">Une copie de sécurité est faite avant l’import. Chaque ligne crée un paiement avec son reçu. Les lignes sans montant valide, sans élève ou dont le reçu existe déjà sont ignorées.</p><div class="mf"><button class="b l" onclick="cm()">Annuler</button><button class="b"${L.length?'':' disabled'} onclick="pyImpGo()">${I('check',16)} Valider l’import</button></div>`;$('#mo').hidden=0}catch(err){ts(err.message||'Fichier illisible')}}
+function pyImpGo(){if(!PYQ||!PYQ.length)return;snap('Avant import des paiements');let n=PYQ.length;PYQ.forEach(x=>{let o={...x.rec,id:uid()};o.rc=o.rc||rcn();D.pa.push(o)});audit('Import des paiements',n+' paiement(s)');sv();PYQ=null;cm();go('pa');ts(n+' paiement(s) importé(s)')}
+function pyTpl(){dl('modele_import_paiements.csv','\ufeff'+['Matricule','Nom','Postnom','Prénom','Classe','Motif','Mois','Montant','Devise','Date','Mode','Type'].join(';')+'\n'+['','Kilu','Honoré','Elie','4ème humanité','Inscription','Novembre','100','USD','25/11/2026','Espèce','Total'].join(';')+'\n','text/csv')}
+V.pa=()=>HDR(PG.pa[2],'Aucun besoin d’enregistrer l’élève au préalable : saisissez ses coordonnées, ou choisissez-le s’il existe déjà.')+SEGB([['new','Nouveau paiement','plus'],['pay','Payants','users'],['hist','Historique','clock']],PT,'PT','pa')+(PT=='hist'?phist():PT=='pay'?pyHTML():(can('pa')?`<form id="frm" autocomplete="off" onsubmit="return false">${fsets(PSETS(),{dev:'USD',mo:'Minerval',mois:MN[new Date().getMonth()],an:D.s.annee,ty:'Total',md:'Espèce',dt:today()})}<datalist id="dls">${D.el.map(e=>`<option value="${esc(NM(e)+' — '+e.mat)}"></option><option value="${esc(e.mat)}" label="${esc(NM(e))}"></option>`).join('')}</datalist><div class="formbar"><button type="button" class="b" onclick="paSave()">${I('check',18)} Enregistrer et générer le reçu</button><button type="button" class="b l" onclick="go('home')">Annuler</button></div></form>`:'<p class="empty">Vous n’avez pas le droit d’enregistrer un paiement.</p>'));
+AF.pa=()=>{if(PT=='hist')return phFill();if(PT=='pay')return pyFill();if(PT!='new'||!can('pa'))return;LNK=null;
  const optU=sel=>{let s=$('#f_sec').value,op=$('#f_opt');op.innerHTML='<option value="">— Aucune —</option>'+(s=='Humanité'?D.s.opt.map(x=>`<option${x==sel?' selected':''}>${esc(x)}</option>`).join(''):'');op.disabled=s!='Humanité'};
  const cur=()=>{let o={nom:$('#f_nom').value.trim(),postnom:$('#f_postnom').value.trim(),prenom:$('#f_prenom').value.trim()};return{id:LNK||'p:'+nkey(o),sec:$('#f_sec').value,cl:$('#f_cl').value}};
  const hint=()=>{let e=cur(),mo=$('#f_mo').value,dv=$('#f_dev').value,ty=$('#f_ty').value,g=ST(e).gr.find(x=>x.mo==mo&&x.dev==dv);$('#f_hint').textContent=g?`Dû : ${F(g.due,g.dev)} · déjà payé : ${F(g.paid,g.dev)} · reste : ${F(g.rest,g.dev)}`:'Aucun tarif défini pour ce motif, cette devise et cette classe.';if(ty=='Total'&&g&&g.rest>0)$('#f_m').value=g.rest};
  const fill=e=>{['nom','postnom','prenom','cl'].forEach(k=>$('#f_'+k).value=e[k]||'');$('#f_sec').value=e.sec||secOf(e.cl)||'Primaire';optU(e.opt);LNK=e.id;hint()};
- $('#f_q').oninput=()=>{let m=D.el.find(e=>(NM(e)+' — '+e.mat)==$('#f_q').value);if(m)fill(m)};
+ const qf=v=>{v=v.trim();if(!v)return null;let s=snz(v);return D.el.find(e=>(NM(e)+' — '+e.mat)==v)||D.el.find(e=>snz(e.mat)==s||e.id==v)||null};
+ $('#f_q').oninput=()=>{let m=qf($('#f_q').value);if(m)fill(m)};
+ const qs=()=>{let v=$('#f_q').value.trim();if(!v)return;let m=qf(v);if(m)return fill(m);let s=snz(v),c=D.el.filter(e=>snz(NM(e)+' '+e.mat).includes(s));if(c.length==1){$('#f_q').value=NM(c[0])+' — '+c[0].mat;fill(c[0])}else ts(c.length?c.length+' élèves trouvés : précisez le nom ou le matricule':'Aucun élève trouvé pour « '+v+' »')};
+ $('#f_q').onchange=qs;$('#f_q').onkeydown=ev=>{if(ev.key=='Enter'){ev.preventDefault();qs()}};
  ['nom','postnom','prenom'].forEach(k=>$('#f_'+k).oninput=()=>{LNK=null;hint()});
  $('#f_cl').onchange=()=>{let s=secOf($('#f_cl').value);if(s)$('#f_sec').value=s;optU();hint()};
  $('#f_sec').onchange=()=>{let s=$('#f_sec').value;if(secOf($('#f_cl').value)!=s)$('#f_cl').value='';optU();hint()};
@@ -244,8 +287,71 @@ function paSave(){let o=collect(PSETS().flatMap(s=>s.f),{});if(!o)return;o.m=+o.
  let g=ST({id:o.el,sec:o.sec,cl:o.cl}).gr.find(x=>x.mo==o.mo&&x.dev==o.dev);
  if(o.ty=='Total'&&g&&g.rest>o.m&&!confirm('Paiement « Total » mais le montant est inférieur au reste dû ('+F(g.rest,o.dev)+'). Continuer ?'))return;
  o.rc=rcn();up(D.pa,o);audit('Paiement enregistré',o.rc+' · '+NM(o)+' · '+F(o.m,o.dev));sv();PT='new';go('pa');ts('Paiement enregistré');rc(o.id)}
-function rc(id){let p=D.pa.find(x=>x.id==id),e=EL(p),g=(ST(e).gr||[]).find(x=>x.mo==p.mo&&x.dev==p.dev);
- pr(`<div class="rcp"><h2 style="text-align:center">REÇU DE PAIEMENT</h2><p style="text-align:center;font:800 20px monospace;margin:6px 0 14px">${esc(p.rc)}</p>${[['Élève',NM(e)],['Matricule',e.mat],['Classe',e.cl],['Section',e.sec],['Option',e.opt||'—'],['Motif',p.mo],['Mois',p.mois||'—'],['Année scolaire',p.an],['Montant payé',F(p.m,p.dev)],['Type de paiement',p.ty],['Mode',p.md],['Date',DF(p.dt)],...(g?[['Reste dû (ce motif)',F(g.rest,g.dev)]]:[]),['Caissier',U.nom]].map(r=>`<div class="rw"><b>${r[0]}</b><span>${esc(r[1]||'—')}</span></div>`).join('')}<p style="margin-top:34px">Signature : ____________________</p></div>`)}
+// ---- Reçu (design chèque : rendu image -> impression / PDF / image)
+const snz=s=>String(s==null?'':s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+const _U=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf'],_T=['','','vingt','trente','quarante','cinquante','soixante'];
+const _b100=(n,f)=>{if(n<20)return _U[n];let t=n/10|0,u=n%10;if(t<7)return _T[t]+(u==1?' et un':u?'-'+_U[u]:'');if(t==7)return'soixante'+(u==1?' et onze':'-'+_U[10+u]);if(t==8)return'quatre-vingt'+(u?'-'+_U[u]:f?'s':'');return'quatre-vingt-'+_U[10+u]};
+const _b1000=(n,f)=>{let c=n/100|0,r=n%100,s='';if(c)s=(c>1?_U[c]+' ':'')+'cent'+(c>1&&!r&&f?'s':'');if(r)s+=(s?' ':'')+_b100(r,f);return s};
+const nwFr=n=>{n=Math.floor(n);if(!n)return'zéro';if(n>=1e9)return n.toLocaleString('fr-FR');let m=n/1e6|0,k=n%1e6/1000|0,r=n%1000,a=[];if(m)a.push(m==1?'un million':_b1000(m,1)+' millions');if(k)a.push(k==1?'mille':_b1000(k,0)+' mille');if(r)a.push(_b1000(r,1));return a.join(' ')};
+const CN={USD:['dollar américain','dollars américains','cent','cents','DOLLARS'],CDF:['franc congolais','francs congolais','centime','centimes','FRANCS'],EUR:['euro','euros','centime','centimes','EUROS']};
+const amtW=(m,dev)=>{let c=CN[dev]||[dev,dev,'centime','centimes',String(dev).toUpperCase()],e=Math.floor(m+1e-9),ce=Math.round((m-e)*100),s=nwFr(e)+(e>=1e6&&e%1e6==0?' de ':' ')+(e>1?c[1]:c[0]);if(ce)s+=' et '+nwFr(ce)+' '+(ce>1?c[3]:c[2]);return s.charAt(0).toUpperCase()+s.slice(1)};
+const rcImg=src=>new Promise(r=>{if(!src)return r(null);let i=new Image;i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src});
+async function rcCanvas(p){
+ let e=EL(p),g=(ST(e).gr||[]).find(z=>z.mo==p.mo&&z.dev==p.dev),W=1800,H=1000,c=document.createElement('canvas');c.width=W;c.height=H;let x=c.getContext('2d');
+ try{await Promise.all(['500 20px "Plus Jakarta Sans"','600 20px "Plus Jakarta Sans"','700 20px "Plus Jakarta Sans"','800 20px "Plus Jakarta Sans"'].map(f=>document.fonts.load(f)))}catch(_){}
+ const FN='"Plus Jakarta Sans",Poppins,"Segoe UI",system-ui,Arial,sans-serif',MC='"OCR-B","Courier New",Courier,monospace',INK='#161311',MUT='#6f5f50',LN='#3a322b';
+ const fnt=(w,s,f)=>{x.font=w+' '+s+'px '+(f||FN)};
+ const txt=(t,px,py,w,s,col,al,mw,f)=>{t=String(t);x.fillStyle=col||INK;x.textAlign=al||'left';x.textBaseline='alphabetic';fnt(w,s,f);if(mw)while(x.measureText(t).width>mw&&s>14){s-=2;fnt(w,s,f)}x.fillText(t,px,py)};
+ const ln=(x1,x2,y,lw,col)=>{x.beginPath();x.moveTo(x1,y);x.lineTo(x2,y);x.lineWidth=lw||2;x.strokeStyle=col||LN;x.stroke()};
+ const nb=v=>v.toLocaleString('fr-FR',{minimumFractionDigits:v%1?2:0,maximumFractionDigits:2}).replace(/[\u202f\u00a0]/g,' ');
+ x.fillStyle='#fff';x.fillRect(0,0,W,H);
+ x.save();x.beginPath();x.rect(26,26,W-52,H-52);x.clip();
+ for(let k=0;k<46;k++){x.beginPath();for(let px=0;px<=W;px+=6){let y=330+150*Math.sin(px/280+k*.05)+80*Math.sin(px/120-k*.035)+k*3.2-70;px?x.lineTo(px,y):x.moveTo(px,y)}x.strokeStyle='rgba(196,150,110,'+(.10+.22*Math.abs(Math.sin(k/7))).toFixed(3)+')';x.lineWidth=1.3;x.stroke()}
+ for(let k=0;k<40;k++){x.beginPath();for(let px=0;px<=W;px+=6){let y=730+130*Math.sin(px/340+k*.06+1.8)+70*Math.sin(px/150+k*.04)+k*2.6-50;px?x.lineTo(px,y):x.moveTo(px,y)}x.strokeStyle='rgba(205,172,140,'+(.10+.16*Math.abs(Math.sin(k/6))).toFixed(3)+')';x.lineWidth=1.2;x.stroke()}
+ x.restore();
+ x.strokeStyle='#d9cfc3';x.lineWidth=3;x.strokeRect(14,14,W-28,H-28);x.lineWidth=2;x.strokeRect(26,26,W-52,H-52);
+ let lg=await rcImg(D.s.logo),tx=70;
+ if(lg){let sc=Math.min(110/lg.width,110/lg.height);x.drawImage(lg,70,56,lg.width*sc,lg.height*sc);tx=70+lg.width*sc+26}
+ txt(String(D.s.nom||'').toUpperCase(),tx,112,'800',56,INK,'left',1180-tx);
+ txt('REÇU DE PAIEMENT',tx,160,'700',28,MUT);
+ txt('Année scolaire '+(p.an||D.s.annee),tx,196,'500',24,MUT);
+ txt(p.rc,W-70,112,'700',44,INK,'right',620,MC);
+ txt('DATE',1130,206,'700',26,INK);ln(1230,W-70,214);txt(DF(p.dt),(1230+W-70)/2,204,'700',32,INK,'center',470);
+ txt('REÇU DE',70,352,'700',26,INK);ln(230,1400,358);txt(NM(e),240,346,'700',40,INK,'left',1150);
+ txt(cs(p.dev),1440,360,'800',String(cs(p.dev)).length>1?44:60,INK,'left',78);
+ x.fillStyle='rgba(255,255,255,.92)';x.fillRect(1525,296,205,84);x.strokeStyle=INK;x.lineWidth=2.5;x.strokeRect(1525,296,205,84);
+ txt(nb(+p.m),1627,352,'800',42,INK,'center',185);
+ ln(70,1520,452);txt(amtW(+p.m,p.dev),80,442,'600',32,INK,'left',1420);txt((CN[p.dev]||[])[4]||p.dev,1535,452,'700',26,INK,'left',200);
+ const G=[['Matricule',e.mat||'—'],['Classe',e.cl||'—'],['Section',e.sec||'—'],['Option',e.opt||'—'],['Mois',p.mois||'—'],['Année scolaire',p.an||'—'],['Type de paiement',p.ty||'—'],['Mode',p.md||'—'],['Caissier',(U&&U.nom)||'—'],...(g?[['Reste dû (ce motif)',F(g.rest,g.dev)]]:[])];
+ G.forEach((r,i)=>{let cx=70+(i%4)*430,cy=548+(i/4|0)*92;txt(r[0].toUpperCase(),cx,cy,'700',20,MUT);txt(r[1],cx,cy+38,'700',32,INK,'left',400)});
+ txt('POUR',70,862,'700',26,INK);ln(170,1100,868);txt(p.mo+(p.mois?' — '+p.mois:'')+(p.an?' '+p.an:''),180,858,'600',32,INK,'left',910);
+ ln(1200,W-70,868);txt('Signature et cachet',(1200+W-70)/2,902,'500',22,MUT,'center');
+ txt(':  '+p.rc+'  :  '+((e.mat&&e.mat!='—')?e.mat:'0000')+'  |  '+String(Math.round(p.m*100)).padStart(8,'0')+'  :',70,962,'700',32,'#2a2420','left',1660,MC);
+ return c}
+let RCU='',RCP=null,RCC=null;
+async function rc(id){let p=D.pa.find(z=>z.id==id);if(!p)return;ts('Préparation du reçu…');
+ try{RCC=await rcCanvas(p);RCP=p;RCU=RCC.toDataURL('image/jpeg',.93)}catch(err){return ts('Impossible de générer le reçu')}
+ $('#pa').className='rcv';$('#pa').hidden=0;$('#pa').innerHTML=`<div class="np row"><button class="b" onclick="rcPrint()">${I('print',16)} Imprimer</button><button class="b l" onclick="rcPdf()">${I('down',16)} PDF</button><button class="b l" onclick="rcPng()">${I('down',16)} Image</button><button class="b l" onclick="$('#pa').hidden=1">Fermer</button></div><img class="rci" alt="Reçu" src="${RCU}">`;$('#pa').scrollTop=0}
+const _enc=new TextEncoder();
+function pdfJpeg(jpg,iw,ih){let pw=595.28,ph=841.89,w=535,h=w*ih/iw,x0=(pw-w)/2,y0=ph-36-h,parts=[],len=0,off=[];
+ const put=b=>{if(typeof b=='string')b=_enc.encode(b);parts.push(b);len+=b.length};
+ const obj=(n,body,stream)=>{off[n]=len;put(n+' 0 obj\n'+body+'\n');if(stream){put('stream\n');put(stream);put('\nendstream\n')}put('endobj\n')};
+ put('%PDF-1.4\n');
+ obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,'<< /Type /Pages /Kids [3 0 R] /Count 1 >>');
+ obj(3,'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+pw+' '+ph+'] /Contents 4 0 R /Resources << /XObject << /Im0 5 0 R >> >> >>');
+ let cs2='q '+w.toFixed(2)+' 0 0 '+h.toFixed(2)+' '+x0.toFixed(2)+' '+y0.toFixed(2)+' cm /Im0 Do Q';
+ obj(4,'<< /Length '+cs2.length+' >>',cs2);
+ obj(5,'<< /Type /XObject /Subtype /Image /Width '+iw+' /Height '+ih+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpg.length+' >>',jpg);
+ let xr=len;put('xref\n0 6\n0000000000 65535 f \n');for(let i=1;i<=5;i++)put(String(off[i]).padStart(10,'0')+' 00000 n \n');
+ put('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');return new Blob(parts,{type:'application/pdf'})}
+async function rcPdf(){if(!RCC)return;try{let jpg=Uint8Array.from(atob(RCU.split(',')[1]),c=>c.charCodeAt(0));await dlb('Recu_'+RCP.rc+'.pdf',pdfJpeg(jpg,RCC.width,RCC.height))}catch(err){ts('Erreur lors de la création du PDF')}}
+function rcPng(){if(!RCC)return;RCC.toBlob(async b=>{try{await dlb('Recu_'+RCP.rc+'.png',b)}catch(err){ts('Erreur lors de l’export de l’image')}},'image/png')}
+function rcPrint(){if(!RCU)return;
+ if(window.Capacitor){ts('PDF prêt : choisissez « Imprimer » dans le menu de partage');return rcPdf()}
+ let f=document.createElement('iframe');f.style.cssText='position:fixed;left:-9999px;top:0;width:900px;height:600px;border:0';document.body.appendChild(f);
+ try{let d=f.contentWindow.document;d.open();d.write('<!doctype html><html><head><meta charset="utf-8"><title>Reçu '+esc(RCP.rc)+'</title><style>@page{size:A4;margin:12mm}html,body{margin:0;background:#fff}img{display:block;width:100%}</style></head><body><img id="i" src="'+RCU+'"></body></html>');d.close();
+  let im=d.getElementById('i'),run=()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(err){window.print()}setTimeout(()=>f.remove(),90000)};
+  im.complete?run():im.onload=run}catch(err){f.remove();window.print()}}
 
 // ---- Dettes et Bilan (page unique)
 let FT='ov',DFL={sec:'',late:0,q:''};
