@@ -20,6 +20,10 @@ jobs:
           distribution: temurin
           java-version: 17
       - run: npm install
+      - name: Préparer le dossier www
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
       - name: Créer le projet Android
         run: |
           npx cap add android
@@ -28,7 +32,12 @@ jobs:
         run: |
           cd android/app/src/main/res
           rm -rf mipmap-anydpi-v26
-          cp -r "$GITHUB_WORKSPACE"/android-icons/mipmap-* .
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p mipmap-$d
+            cp "$GITHUB_WORKSPACE/ic_launcher.png" mipmap-$d/ic_launcher.png
+            cp "$GITHUB_WORKSPACE/ic_launcher_round.png" mipmap-$d/ic_launcher_round.png
+            cp "$GITHUB_WORKSPACE/ic_launcher_foreground.png" mipmap-$d/ic_launcher_foreground.png
+          done
       - name: Compiler l'APK
         run: |
           cd android
