@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Télécharger l’application · C.S Wetsh-School</title>
+<style>
+:root{--g1:#0a5c3a;--g2:#17935d;--ink:#10231a;--mut:#5d7267}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;font:500 15px/1.5 'Plus Jakarta Sans',system-ui,Segoe UI,Arial,sans-serif;color:var(--ink);background:linear-gradient(135deg,#d9f0e6,#e4eefa 55%,#e6f6ea)}
+.c{width:100%;max-width:440px;background:#fff;border-radius:24px;padding:28px 22px;text-align:center;box-shadow:0 18px 50px rgba(10,92,58,.18)}
+.lg{width:84px;height:84px;border-radius:22px;margin:0 auto 12px;display:block;background:var(--g1);object-fit:cover}
+h1{margin:0 0 4px;font-size:22px}
+p{margin:6px 0;color:var(--mut)}
+.b{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:10px 0 0;padding:15px 18px;border:0;border-radius:16px;font:800 16px inherit;font-family:inherit;text-decoration:none;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--g1),var(--g2));box-shadow:0 8px 20px rgba(10,92,58,.25)}
+.b.l{background:#e8f6ef;color:var(--g1);box-shadow:none;font-weight:700;font-size:14.5px}
+.b[hidden]{display:none}
+#st{min-height:22px;margin-top:14px;font-size:13px;color:var(--g1);font-weight:700}
+#st.err{color:#c0392b}
+.help{margin-top:16px;padding:12px 14px;border-radius:14px;background:#f4f8f6;text-align:left;font-size:12.5px;color:var(--mut)}
+.help b{color:var(--ink)}
+.help ol{margin:6px 0 0;padding-left:18px}
+</style>
+</head>
+<body>
+<div class="c">
+  <img class="lg" id="lg" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 84 84'%3E%3Crect width='84' height='84' fill='%230a5c3a'/%3E%3Ctext x='42' y='54' font-size='38' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EWS%3C/text%3E%3C/svg%3E">
+  <h1>C.S Wetsh-School</h1>
+  <p>Gestion des minervals</p>
+
+  <a class="b" id="bA" hidden>📱 Télécharger pour Android (APK)</a>
+  <a class="b" id="bW" hidden>💻 Télécharger pour Windows (setup)</a>
+  <a class="b l" id="bW2" hidden>💻 Version Windows (setup)</a>
+  <a class="b l" id="bA2" hidden>📱 Version Android (APK)</a>
+  <a class="b l" id="bWeb" href="index.html">🌐 Ouvrir la version web</a>
+
+  <div id="st"></div>
+
+  <div class="help" id="hA" hidden>
+    <b>Installer sur Android</b>
+    <ol><li>Ouvrez le fichier téléchargé (notification ou dossier « Téléchargements »).</li>
+    <li>Si Android le demande, autorisez l’installation depuis cette source.</li>
+    <li>Appuyez sur « Installer ».</li></ol>
+  </div>
+  <div class="help" id="hW" hidden>
+    <b>Installer sur Windows</b>
+    <ol><li>Ouvrez le fichier téléchargé.</li>
+    <li>Si Windows affiche un avertissement : « Informations complémentaires » puis « Exécuter quand même ».</li></ol>
+  </div>
+  <div class="help" id="hI" hidden>
+    <b>iPhone / iPad</b> : il n’existe pas d’APK. Ouvrez la version web, puis Partager → « Sur l’écran d’accueil ».
+  </div>
+</div>
+
+<script>
+// ====== Dépôts GitHub (les liens des fichiers sont trouvés automatiquement) ======
+const OWNER = 'eliahonore616-tech';
+const APK_REPO = 'gest-ec.apk';     // dépôt de l'APK
+const SETUP_REPO = 'Gest.el.exe';   // dépôt du setup Windows
+const AUTO_DOWNLOAD = true;         // lance le téléchargement dès l'ouverture du lien
+// ====================================================================
+
+const $ = s => document.querySelector(s);
+const ua = navigator.userAgent || '';
+const isAndroid = /Android/i.test(ua);
+const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isWin = /Windows/i.test(ua);
+
+async function latest(repo, ext){
+  try{
+    const r = await fetch('https://api.github.com/repos/'+OWNER+'/'+repo+'/releases/latest');
+    if(!r.ok) return null;
+    const j = await r.json();
+    const L = (j.assets||[]).filter(a => a.name.toLowerCase().endsWith(ext));
+    const a = L.find(x => /setup|install/i.test(x.name)) || L[0];
+    return a ? {url:a.browser_download_url, name:a.name} : null;
+  }catch(e){ return null }
+}
+const relPage = repo => 'https://github.com/'+OWNER+'/'+repo+'/releases';
+function setLink(el, f, repo){
+  el.hidden = false;
+  if(f){ el.href = f.url; el.setAttribute('download', f.name) }
+  else { el.href = relPage(repo); el.removeAttribute('download'); el.textContent += ' (page des versions)' }
+}
+function start(url, name){
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.style.display = 'none';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+(async () => {
+  if (isIOS) { $('#hI').hidden = false; return }
+  $('#st').textContent = 'Recherche de la dernière version…';
+  const [apk, exe] = await Promise.all([latest(APK_REPO,'.apk'), latest(SETUP_REPO,'.exe')]);
+  $('#st').textContent = '';
+  let main = null, mainRepo = null;
+  if (isAndroid) {
+    setLink($('#bA'), apk, APK_REPO); setLink($('#bW2'), exe, SETUP_REPO); $('#hA').hidden = false; main = apk; mainRepo = APK_REPO;
+  } else {
+    setLink($('#bW'), exe, SETUP_REPO); setLink($('#bA2'), apk, APK_REPO); if (isWin) $('#hW').hidden = false; main = isWin ? exe : null; mainRepo = SETUP_REPO;
+  }
+  if (!main && (isAndroid || isWin)) {
+    $('#st').className = 'err';
+    $('#st').innerHTML = 'Aucune version publiée trouvée. <a href="'+relPage(mainRepo)+'">Voir les versions</a>';
+    return;
+  }
+  if (main && AUTO_DOWNLOAD) {
+    $('#st').textContent = 'Téléchargement en cours… sinon appuyez sur le bouton ci-dessus.';
+    setTimeout(() => start(main.url, main.name), 600);
+  }
+})();
+</script>
+</body>
+</html>

@@ -331,7 +331,7 @@ async function rcCanvas(p){
 let RCU='',RCP=null,RCC=null;
 async function rc(id){let p=D.pa.find(z=>z.id==id);if(!p)return;ts('Préparation du reçu…');
  try{RCC=await rcCanvas(p);RCP=p;RCU=RCC.toDataURL('image/jpeg',.93)}catch(err){return ts('Impossible de générer le reçu')}
- $('#pa').className='rcv';$('#pa').hidden=0;$('#pa').innerHTML=`<div class="np row"><button class="b" onclick="rcPrint()">${I('print',16)} Imprimer</button><button class="b l" onclick="rcPdf()">${I('down',16)} PDF</button><button class="b l" onclick="rcPng()">${I('down',16)} Image</button><button class="b l" onclick="$('#pa').hidden=1">Fermer</button></div><img class="rci" alt="Reçu" src="${RCU}">`;$('#pa').scrollTop=0}
+ $('#pa').className='rcv';$('#pa').hidden=0;$('#pa').innerHTML=`<div class="np row"><button class="b" onclick="rcPrint()">${I('print',16)} Imprimer</button><button class="b l" onclick="rcPdf()">${I('down',16)} PDF</button><button class="b l" onclick="rcPng()">${I('down',16)} Image</button><button class="b l" onclick="rcShare()">${I('up',16)} Partager</button><button class="b l" onclick="$('#pa').hidden=1">Fermer</button></div><img class="rci" alt="Reçu" src="${RCU}">`;$('#pa').scrollTop=0}
 const _enc=new TextEncoder();
 function pdfJpeg(jpg,iw,ih){let pw=595.28,ph=841.89,w=535,h=w*ih/iw,x0=(pw-w)/2,y0=ph-36-h,parts=[],len=0,off=[];
  const put=b=>{if(typeof b=='string')b=_enc.encode(b);parts.push(b);len+=b.length};
@@ -344,10 +344,16 @@ function pdfJpeg(jpg,iw,ih){let pw=595.28,ph=841.89,w=535,h=w*ih/iw,x0=(pw-w)/2,
  obj(5,'<< /Type /XObject /Subtype /Image /Width '+iw+' /Height '+ih+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+jpg.length+' >>',jpg);
  let xr=len;put('xref\n0 6\n0000000000 65535 f \n');for(let i=1;i<=5;i++)put(String(off[i]).padStart(10,'0')+' 00000 n \n');
  put('trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF');return new Blob(parts,{type:'application/pdf'})}
-async function rcPdf(){if(!RCC)return;try{let jpg=Uint8Array.from(atob(RCU.split(',')[1]),c=>c.charCodeAt(0));await dlb('Recu_'+RCP.rc+'.pdf',pdfJpeg(jpg,RCC.width,RCC.height))}catch(err){ts('Erreur lors de la création du PDF')}}
-function rcPng(){if(!RCC)return;RCC.toBlob(async b=>{try{await dlb('Recu_'+RCP.rc+'.png',b)}catch(err){ts('Erreur lors de l’export de l’image')}},'image/png')}
+async function rcSave(n,b){let P=window.Capacitor&&Capacitor.Plugins;
+ if(P&&P.Filesystem){try{let d=(await b2d(b)).split(',')[1],r=await P.Filesystem.writeFile({path:'Recus/'+n,data:d,directory:'DOCUMENTS',recursive:true});ts('Enregistré dans Documents/Recus/'+n);return}catch(err){if(P.Share){ts('Enregistrement direct impossible : partage du fichier');return dlb(n,b)}throw err}}
+ let u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=n;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(u)},4000);ts('Fichier enregistré : '+n)}
+const rcPdfBlob=()=>pdfJpeg(Uint8Array.from(atob(RCU.split(',')[1]),c=>c.charCodeAt(0)),RCC.width,RCC.height);
+const rcPngBlob=()=>new Promise(r=>RCC.toBlob(r,'image/png'));
+async function rcPdf(){if(!RCC)return;try{await rcSave('Recu_'+RCP.rc+'.pdf',rcPdfBlob())}catch(err){ts('Erreur lors de l’enregistrement du PDF')}}
+async function rcPng(){if(!RCC)return;try{await rcSave('Recu_'+RCP.rc+'.png',await rcPngBlob())}catch(err){ts('Erreur lors de l’enregistrement de l’image')}}
+async function rcShare(){if(!RCC)return;try{await dlb('Recu_'+RCP.rc+'.pdf',rcPdfBlob())}catch(err){ts('Partage impossible')}}
 function rcPrint(){if(!RCU)return;
- if(window.Capacitor){ts('PDF prêt : choisissez « Imprimer » dans le menu de partage');return rcPdf()}
+ if(window.Capacitor){ts('PDF prêt : choisissez « Imprimer » dans le menu de partage');return rcShare()}
  let f=document.createElement('iframe');f.style.cssText='position:fixed;left:-9999px;top:0;width:900px;height:600px;border:0';document.body.appendChild(f);
  try{let d=f.contentWindow.document;d.open();d.write('<!doctype html><html><head><meta charset="utf-8"><title>Reçu '+esc(RCP.rc)+'</title><style>@page{size:A4;margin:12mm}html,body{margin:0;background:#fff}img{display:block;width:100%}</style></head><body><img id="i" src="'+RCU+'"></body></html>');d.close();
   let im=d.getElementById('i'),run=()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(err){window.print()}setTimeout(()=>f.remove(),90000)};
